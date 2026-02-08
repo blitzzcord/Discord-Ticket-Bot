@@ -18,7 +18,7 @@ Designed to be **clean, reliable, and production-ready**.
 
 - 🎫 Ticket panel with button-based creation
 - 🔢 Automatic ticket numbering (`ticket-0001`, `ticket-0002`, etc.)
-- 🧑‍💼 Staff **claim / unclaim** system
+- 🧑‍💼 Staff **claim** system
 - 🔒 Claimer-only ticket closing (admin override supported)
 - 📄 Automatic transcript generation on close
 - 💾 Optional transcript saving to disk (config toggle)
