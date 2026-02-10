@@ -513,5 +513,62 @@ async def forceclose(interaction: discord.Interaction, channel: discord.TextChan
     await asyncio.sleep(3)
     await target_channel.delete(reason=f"Force closed by {interaction.user} ({interaction.user.id})")
 
+@bot.tree.command(name="ticketstats", description="View ticket statistics.")
+@app_commands.guilds(discord.Object(id=GUILD_ID))
+async def ticketstats(interaction: discord.Interaction):
+    if not interaction.guild:
+        return await interaction.response.send_message("This only works in a server.", ephemeral=True)
+
+    db = load_tickets_db()
+
+    total_created = int(db.get("last_ticket_number", 0))
+    tickets = db.get("tickets_by_channel", {})
+
+    open_count = 0
+    claimed_count = 0
+
+    staff_claims = {}
+
+    for ticket in tickets.values():
+        status = ticket.get("status")
+        claimed_by = ticket.get("claimed_by")
+
+        if status in ("open", "claimed"):
+            open_count += 1
+
+        if claimed_by:
+            claimed_count += 1
+            staff_claims[claimed_by] = staff_claims.get(claimed_by, 0) + 1
+
+    closed_count = total_created - open_count
+
+    embed = discord.Embed(
+        title="📊 Ticket Statistics",
+        color=0x2b2d31
+    )
+
+    embed.add_field(name="Total Tickets Created", value=str(total_created), inline=True)
+    embed.add_field(name="Currently Open", value=str(open_count), inline=True)
+    embed.add_field(name="Currently Claimed", value=str(claimed_count), inline=True)
+    embed.add_field(name="Closed Tickets", value=str(closed_count), inline=True)
+
+    if staff_claims:
+        leaderboard = ""
+        sorted_staff = sorted(staff_claims.items(), key=lambda x: x[1], reverse=True)
+
+        for staff_id, count in sorted_staff[:5]:
+            leaderboard += f"<@{staff_id}> — {count}\n"
+
+        embed.add_field(
+            name="Top Staff (by Claims)",
+            value=leaderboard,
+            inline=False
+        )
+
+    embed.set_footer(text="Ticket System Analytics")
+
+    await interaction.response.send_message(embed=embed)
+
 
 bot.run(TOKEN)
+
